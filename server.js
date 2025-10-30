@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
-import https from 'https';
+import https from 'https'; // تأكد من وجود هذا السطر
 
 // Helper function to format duration from seconds
 function formatDuration(seconds) {
@@ -46,14 +46,14 @@ app.use(express.json());
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-// --- !!! تعديل مهم: تحديد مسار القرص الثابت في Render !!! ---
-const downloadsDir = '/var/data/downloads';
+// --- !!! هذا هو السطر الصحيح للخطة المجانية !!! ---
+const downloadsDir = path.join(__dirname, 'downloads');
+// --- !!! نهاية التعديل !!! ---
+
 // التأكد من أن المجلد موجود عند بدء التشغيل
 if (!fs.existsSync(downloadsDir)) {
   fs.mkdirSync(downloadsDir, { recursive: true });
 }
-// --- !!! نهاية التعديل !!! ---
-
 
 // استخدام express.static مع setHeaders لضمان 'inline'
 app.use('/downloads', express.static(downloadsDir, {
