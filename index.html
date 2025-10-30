@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة تحميل</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', sans-serif; }
+        
+        :root {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --card-bg-color: #1f1f1f;
+            --input-bg-color: #2a2a2a;
+            --border-color: #333;
+            --secondary-text-color: #aaa;
+            --placeholder-color: #888;
+            --primary-color: #fdd835;
+            --primary-gradient: linear-gradient(45deg, #fdd835, #ffb300);
+            --primary-text-color: #121212;
+            --hover-bg-color: #2a2a2a;
+            --icon-color: #ccc;
+            --nav-inactive-color: #888;
+        }
+        
+        body.light-mode {
+            --bg-color: #f0f2f5;
+            --text-color: #1c1e21;
+            --card-bg-color: #ffffff;
+            --input-bg-color: #e4e6eb;
+            --border-color: #ced0d4;
+            --secondary-text-color: #65676b;
+            --placeholder-color: #8a8d91;
+            --primary-color: #f5c33b;
+            --primary-gradient: linear-gradient(45deg, #f5c33b, #ffa700);
+            --primary-text-color: #000000;
+            --hover-bg-color: #e9ebee;
+            --icon-color: #44484f;
+            --nav-inactive-color: #65676b;
+        }
+        
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            background-color: var(--bg-color); 
+            color: var(--text-color); 
+            overflow: hidden; 
+            transition: background-color 0.3s ease, color 0.3s ease; 
+        }
+        main { flex-grow: 1; overflow-y: auto; position: relative; }
+        
+        .page { padding: 20px; display: none; }
+        .page.active { display: block; animation: slideUpFadeIn 0.4s ease-out; }
+
+        .search-mode-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; width: 90%; }
+        .search-mode-tab {
+            background-color: var(--input-bg-color); 
+            color: var(--nav-inactive-color); 
+            border: 1px solid var(--border-color); 
+            padding: 8px 15px; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; font-size: 14px;
+        }
+        .search-mode-tab:hover { background-color: var(--hover-bg-color); color: var(--text-color); }
+        .search-mode-tab.active { background: var(--primary-gradient); color: var(--primary-text-color); border-color: var(--primary-color); font-weight: bold; }
+
+        #search-page { display: flex; flex-direction: column; align-items: center; padding-top: 20px; } 
+        .search-container { 
+            display: flex; align-items: center; 
+            background-color: var(--input-bg-color); 
+            border-radius: 50px; padding: 10px 15px; width: 90%; 
+            border: 1px solid var(--border-color); 
+            position: relative; transition: all 0.3s ease; background-size: 200% 200%;
+        }
+        .search-container .search-icon { font-size: 20px; color: var(--primary-color); margin-left: 10px; }
+        .search-container input { flex-grow: 1; background: transparent; border: none; outline: none; color: var(--text-color); font-size: 16px; text-align: right; padding-left: 30px; }
+        .search-container input::placeholder { color: var(--placeholder-color); } 
+        
+        .search-container .clear-icon { 
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%) scale(0.8);
+            font-size: 18px; color: var(--placeholder-color); 
+            cursor: pointer; display: block; opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .search-container input:not(:placeholder-shown) + .clear-icon { opacity: 1; transform: translateY(-50%) scale(1); }
+
+        .supported-platforms { margin-top: 25px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; width: 90%; transition: opacity 0.3s ease, transform 0.3s ease; }
+        .supported-platforms i { 
+            font-size: 24px; color: var(--nav-inactive-color); 
+            transition: color 0.3s ease, transform 0.3s ease; animation: iconPopIn 0.5s ease-out backwards; 
+        }
+        .supported-platforms i:hover { transform: scale(1.2) translateY(-2px); }
+        .supported-platforms i.fa-youtube:hover { color: #FF0000; }
+        .supported-platforms i.fa-facebook:hover { color: #1877F2; }
+        .supported-platforms i.fa-twitter:hover { color: #1DA1F2; }
+        .supported-platforms i.fa-tiktok:hover { color: #00f2ea; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 2px 2px 0 #ff0050; }
+        body.light-mode .supported-platforms i.fa-tiktok:hover { text-shadow: -1px -1px 0 #eee, 1px -1px 0 #eee, -1px 1px 0 #eee, 1px 1px 0 #eee, 2px 2px 0 #ff0050; } 
+        .supported-platforms i.fa-vimeo-v:hover { color: #1AB7EA; }
+        
+        .more-sites-note { margin-top: 15px; font-size: 13px; color: var(--placeholder-color); text-align: center; transition: opacity 0.3s ease; } 
+
+        #options-page .video-preview {
+            background-color:var(--card-bg-color); 
+            padding:15px; border-radius:10px; display:flex; align-items:center; gap:15px; margin-bottom:20px;
+        }
+        #options-page .video-preview img {width:120px;height:70px;object-fit:cover;border-radius:5px;}
+        #options-page .video-info h3 {font-size:16px;margin-bottom:5px; color: var(--text-color);} 
+        #options-page .video-info p {font-size:14px; color: var(--secondary-text-color);} 
+        .options-section h4 {font-size:14px; color: var(--secondary-text-color); margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid var(--border-color);} 
+        
+        .option-item { display:flex; align-items:center; justify-content:space-between; padding:15px 10px; cursor:pointer; }
+        #music-options-list .option-item,
+        #video-options-list .option-item { animation: slideInFade 0.5s ease-out forwards; opacity: 0; }
+        
+        .option-item:hover { background-color: var(--hover-bg-color); border-radius: 5px; transform: translateY(-2px); transition: transform 0.2s ease, background-color 0.2s ease; } 
+        .option-item label {display:flex;align-items:center;gap:15px;flex-grow:1;cursor:pointer;}
+        .option-item .icon {font-size:18px; color: var(--icon-color); width:25px; text-align:center;} 
+        .option-item .details {display:flex;flex-direction:column;}
+        .option-item .details .title {font-size:16px; color: var(--text-color);} 
+        .option-item .details .size {font-size:14px; color: var(--placeholder-color);} 
+        .option-item input[type="radio"] {appearance:none;-webkit-appearance:none;width:22px;height:22px;border:2px solid var(--placeholder-color); border-radius:50%;position:relative;cursor:pointer;outline:none;} 
+        .option-item input[type="radio"]:checked {border-color: var(--primary-color);} 
+        
+        .option-item input[type="radio"]::after {
+            content:''; width:12px; height:12px; background-color: var(--primary-color); border-radius:50%;
+            position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(0); opacity: 0; 
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease; 
+        } 
+        .option-item input[type="radio"]:checked::after { transform:translate(-50%, -50%) scale(1); opacity: 1; }
+        
+        #download-button {
+            width:90%; background: var(--primary-gradient); color: var(--primary-text-color); border:none; padding:15px;
+            font-size:18px; font-weight:bold; border-radius:50px; cursor:pointer; display:block; margin:30px auto 10px auto; 
+            position: relative; transition: all 0.3s ease; box-shadow: 0 0 5px rgba(253, 216, 53, 0.4);
+            animation: pulse-yellow 2s infinite ease-in-out; 
+        } 
+        #download-button:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 0 15px rgba(253, 216, 53, 0.8); animation-play-state: paused; }
+
+        .download-header {display:flex;flex-direction:column; gap:15px; margin-bottom:20px;}
+        .download-header-top {display:flex;justify-content:space-between;align-items:center;width:100%;}
+        .download-header h3 {font-size:18px;}
+        .download-header button {background:none;border:none; color: var(--primary-color); font-size:18px; cursor:pointer;padding:5px;} 
+        .download-header button:hover { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        #download-search-bar {width:100%; background-color: var(--input-bg-color); border:1px solid var(--border-color); border-radius:50px; padding:10px 15px; color: var(--text-color); font-size:16px; text-align:right; outline:none;} 
+        .download-list {display:flex;flex-direction:column;gap:15px;}
+        
+        .download-item {
+            display:flex; align-items:center; gap:15px; padding:10px; 
+            background-color: var(--card-bg-color); 
+            border-radius:8px; animation: slideInFade 0.4s ease-out;
+            transition: opacity 0.4s ease, transform 0.4s ease, height 0.4s ease, padding 0.4s ease, margin 0.4s ease;
+        }
+        .download-item.fading-out { opacity: 0; transform: scale(0.9); height: 0px; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: -15px; }
+        
+        .download-item.completed {cursor:pointer;}
+        .download-item.completed:hover { background-color: var(--hover-bg-color); transform: translateY(-2px); transition: transform 0.2s ease, background-color 0.2s ease; } 
+        .download-item .thumbnail {width:80px;height:80px;object-fit:cover;border-radius:5px;}
+        .download-item .download-info {flex-grow:1;}
+        .download-item .download-info h4 {font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px; color: var(--text-color);} 
+        .download-item .download-info p {font-size:13px; color: var(--secondary-text-color); margin-top:5px;} 
+        .download-item .download-info .status {font-size:13px; color: var(--primary-color); margin-top:8px;} 
+        .download-progress {width:50px;height:50px;border-radius:50%;background-color:#333;display:grid;place-items:center;position:relative;cursor:pointer;}
+        .download-progress .icon {font-size:20px; color: #fff; z-index:2;} 
+        .download-progress::before {content:'';position:absolute;width:42px;height:42px; background-color: var(--card-bg-color); border-radius:50%;z-index:1;} 
+
+        .setting-item {display:flex;justify-content:space-between;align-items:center;padding:15px 10px; background-color: var(--card-bg-color); border-radius:8px;margin-top:20px; transition: transform 0.2s ease, background-color 0.2s ease;} 
+        .setting-item:hover { background-color: var(--hover-bg-color); transform: translateY(-2px); } 
+        .setting-item label {flex-grow:1;}
+        .setting-item h4 {font-size:16px;margin-bottom:5px;}
+        .setting-item p {font-size:13px; color: var(--secondary-text-color);} 
+        .setting-item input[type="number"] {width:60px;padding:8px; background-color: var(--input-bg-color); border:1px solid var(--border-color); color: var(--text-color); border-radius:5px;text-align:center;font-size:16px;} 
+
+        nav {display:flex; justify-content:space-around; background-color: var(--card-bg-color); border-top:1px solid var(--border-color); padding:10px 0;} 
+        .nav-btn {background:none;border:none; color: var(--nav-inactive-color); display:flex;flex-direction:column;align-items:center;font-size:12px;cursor:pointer;gap:5px;padding:5px 10px; width: 25%; position: relative; transition: color 0.3s ease;} 
+        .nav-btn i {font-size:20px; transition: transform 0.2s ease;} 
+        
+        .nav-btn.active { background: -webkit-linear-gradient(45deg, var(--primary-color), #ffb300); -webkit-background-clip: text; -webkit-text-fill-color: transparent; } 
+        .nav-btn.active i { transform: scale(1.1); background: -webkit-linear-gradient(45deg, var(--primary-color), #ffb300); -webkit-background-clip: text; -webkit-text-fill-color: transparent; } 
+        .nav-btn:hover:not(.active) { color: var(--text-color); } 
+        .nav-btn:hover:not(.active) i { transform: translateY(-3px); }
+
+        .playlist-item-hidden {display:none;}
+        .playlist-item {cursor:pointer;}
+        #show-more-playlist {cursor:pointer;text-align:center;}
+        #show-more-playlist .icon { color: var(--primary-color);} 
+        .quick-download-feedback { color: var(--primary-color) !important; padding:15px;text-align:center;width:100%;} 
+        .playlist-item .thumbnail {width:80px;height:45px;object-fit:cover;border-radius:4px;}
+
+        .flying-thumbnail { position: fixed; z-index: 1000; border-radius: 4px; object-fit: cover; pointer-events: none; transition: all 0.6s cubic-bezier(0.5, -0.5, 0.5, 1.5); }
+        .badge { position: absolute; top: 2px; left: 50%; transform: translateX(8px); background-color: red; color: white; border-radius: 50%; padding: 1px 6px; font-size: 10px; font-weight: bold; display: none; z-index: 1; }
+        .badge:not(:empty) { display: block; }
+        @keyframes iconPopIn { 0% { opacity: 0; transform: scale(0.5); } 70% { opacity: 1; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes slideUpFadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        #download-button:active, .nav-btn:active { transform: scale(0.95); transition: transform 0.1s ease; }
+        .search-container:focus-within { border-color: #c770f0; animation: pulse-border-glow 4s infinite linear; background-image: linear-gradient(90deg, #fdd835, #f5317f, #8F00FF, #fdd835); background-position: 0% 50%; }
+        @keyframes pulse-border-glow { 100% { background-position: 200% 50%; } }
+        @keyframes slideInFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .download-progress[data-status="queued"] .icon, .download-progress[data-status="paused"] .icon { animation: pulse 1.5s infinite ease-in-out; }
+        .search-container .search-icon.loading { animation: pulse 1.5s infinite ease-in-out; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #download-button.loading { opacity: 0.9; cursor: not-allowed; animation-play-state: paused; }
+        #download-button.loading span { visibility: hidden; }
+        #download-button.loading::after { content: ''; position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; margin-top: -10px; margin-left: -10px; border: 3px solid rgba(0,0,0,0.6); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        body.light-mode #download-button.loading::after { border: 3px solid rgba(255,255,255,0.7); border-top-color: transparent;} 
+        @keyframes pulse-yellow { 0% { box-shadow: 0 0 5px rgba(253, 216, 53, 0.4); } 50% { box-shadow: 0 0 15px rgba(253, 216, 53, 0.8); } 100% { box-shadow: 0 0 5px rgba(253, 216, 53, 0.4); } }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 80% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); } }
+        .download-progress[data-status="completed"] .fa-check { animation: popIn 0.3s ease-out; }
+        @keyframes shake { 10%, 90% { transform: rotate(-5deg); } 20%, 80% { transform: rotate(5deg); } 30%, 50%, 70% { transform: rotate(-5deg); } 40%, 60% { transform: rotate(5deg); } 100% { transform: rotate(0deg); } }
+        @keyframes contentFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .page.active .search-mode-tabs, .page.active .search-container, .page.active .supported-platforms, .page.active .video-preview, .page.active .options-section, .page.active .download-header, .page.active h2, .page.active .setting-item, .page.active #thumbnail-container { animation: contentFadeIn 0.6s ease-out backwards; }
+        .page.active .search-container { animation-delay: 0.1s; } .page.active .supported-platforms, .page.active .options-section:nth-of-type(2) { animation-delay: 0.2s; } .page.active .more-sites-note, .page.active .options-section:nth-of-type(3), .page.active .download-list { animation-delay: 0.3s; } .page.active #download-button { animation: contentFadeIn 0.6s ease-out backwards 0.4s; }
+
+        #thumbnail-page { flex-direction: column; align-items: center; }
+        #thumbnail-page.active { display: flex; }
+        #thumbnail-container { width: 90%; max-width: 600px; background-color: var(--card-bg-color); border-radius: 10px; padding: 15px; display: flex; flex-direction: column; align-items: center; } 
+        #thumbnail-preview-img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--input-bg-color); min-height: 200px; } 
+        .thumbnail-actions { display: flex; width: 100%; gap: 10px; margin-top: 15px; }
+        #download-thumbnail-btn, #thumbnail-back-btn { flex-grow: 1; background: var(--primary-gradient); color: var(--primary-text-color); border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none; position: relative; } 
+        #thumbnail-back-btn { background: #333; color: #fff; }
+        body.light-mode #thumbnail-back-btn { background: #ccc; color: #333;} 
+        #thumbnail-back-btn:hover { background: #444; }
+        body.light-mode #thumbnail-back-btn:hover { background: #bbb;} 
+        #download-thumbnail-btn:hover { filter: brightness(1.1); }
+        
+    </style>
+</head>
+<body>
+
+    <main>
+        
+        <section id="search-page" class="page active">
+            
+            <div class="search-mode-tabs">
+                <button class="search-mode-tab active" data-mode="video">
+                    <i class="fas fa-video"></i> تحميل فيديو
+                </button>
+                <button class="search-mode-tab" data-mode="thumbnail">
+                    <i class="fas fa-image"></i> تحميل غلاف
+                </button>
+            </div>
+            
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i> 
+                <input type="text" id="search-input" placeholder="بحث للتحميل">
+                <i class="fas fa-times-circle clear-icon" id="clear-search-btn"></i> 
+            </div>
+            <div class="supported-platforms">
+                <i class="fab fa-youtube" title="YouTube"></i>
+                <i class="fab fa-facebook" title="Facebook"></i>
+                <i class="fab fa-twitter" title="Twitter / X"></i>
+                <i class="fab fa-tiktok" title="TikTok"></i>
+                <i class="fab fa-vimeo-v" title="Vimeo"></i>
+            </div>
+            <p class="more-sites-note">+ العديد من المواقع الأخرى مدعومة</p>
+        </section>
+
+        <section id="options-page" class="page">
+             <div class="video-preview">
+                <img id="options-preview-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" alt="صورة الفيديو"> <div class="video-info">
+                    <h3 id="video-title">...</h3>
+                    <p id="video-channel">...</p>
+                </div>
+            </div>
+            <div class="options-section">
+                <h4>موسيقى</h4>
+                <div id="music-options-list"></div>
+            </div>
+            <div class="options-section" style="margin-top: 20px;">
+                <h4>فيديو</h4>
+                <div id="video-options-list"></div>
+            </div>
+            <button id="download-button"><span>تحميل</span></button>
+        </section>
+
+        <section id="thumbnail-page" class="page">
+            <div id="thumbnail-container">
+                <img id="thumbnail-preview-img" src="" alt="غلاف الفيديو">
+                <div class="thumbnail-actions">
+                    <button id="thumbnail-back-btn"><i class="fas fa-arrow-right"></i> رجوع</button>
+                    <a href="#" id="download-thumbnail-btn">
+                        <span><i class="fas fa-download"></i> تحميل الغلاف</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="downloads-page" class="page">
+             <div class="download-header">
+                <div class="download-header-top">
+                    <h3>يتم التحميل</h3>
+                    <button id="clear-completed-btn" title="مسح المكتمل">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <input type="text" id="download-search-bar" placeholder="ابحث في تحميلاتك...">
+            </div>
+            <div class="download-list" id="download-list-container">
+                </div>
+        </section>
+        
+        <section id="settings-page" class="page">
+            <h2>الإعدادات</h2>
+             <div class="setting-item">
+                <label for="concurrency-limit">
+                    <h4>التحميلات المتزامنة</h4>
+                    <p>تحديد كم فيديو يتم تحميله في نفس الوقت.</p>
+                </label>
+                <input type="number" id="concurrency-limit" value="3" min="1">
+            </div>
+        </section>
+
+    </main>
+
+    <nav>
+        <button class="nav-btn" id="theme-toggle">
+             <i class="fas fa-sun"></i> 
+             <span>الوضع</span>
+        </button>
+        
+        <button class="nav-btn" data-page="settings-page">
+            <i class="fas fa-cog"></i>
+            <span>الإعدادات</span>
+        </button>
+        <button class="nav-btn" data-page="downloads-page" id="downloads-nav-btn"> 
+            <i class="fas fa-play-circle"></i>
+            <span>تشغيل</span>
+            <span class="badge" id="download-badge"></span> </button>
+        <button class="nav-btn active" data-page="search-page"> <i class="fas fa-search"></i>
+            <span>تحميل</span>
+        </button>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- (تحديد العناصر) ---
+            const navButtons = document.querySelectorAll('.nav-btn:not(#theme-toggle)'); 
+            const pages = document.querySelectorAll('.page');
+            const searchInput = document.getElementById('search-input');
+            const downloadButton = document.getElementById('download-button');
+            const downloadListContainer = document.getElementById('download-list-container');
+            const concurrencyLimitInput = document.getElementById('concurrency-limit');
+            const downloadSearchInput = document.getElementById('download-search-bar');
+            const clearCompletedButton = document.getElementById('clear-completed-btn');
+            const clearSearchButton = document.getElementById('clear-search-btn');
+            const downloadsNavButton = document.getElementById('downloads-nav-btn');
+            const downloadBadge = document.getElementById('download-badge');
+            const optionsPreviewImage = document.getElementById('options-preview-img');
+            const mainSearchIcon = document.querySelector('.search-container .search-icon');
+            
+            const searchModeTabs = document.querySelectorAll('.search-mode-tab');
+            const supportedPlatforms = document.querySelector('.supported-platforms');
+            const moreSitesNote = document.querySelector('.more-sites-note');
+            const thumbnailPreviewImg = document.getElementById('thumbnail-preview-img');
+            const downloadThumbnailBtn = document.getElementById('download-thumbnail-btn');
+            const thumbnailBackBtn = document.getElementById('thumbnail-back-btn');
+            let currentSearchMode = 'video'; 
+            let currentThumbnailUrl = ''; 
+
+            const themeToggleButton = document.getElementById('theme-toggle');
+            const themeIcon = themeToggleButton.querySelector('i');
+            const bodyElement = document.body;
+
+
+            let currentVideoData = {}; 
+            let socket;
+            let activeDownloadCount = 0;
+
+            
+            function switchPage(pageId) {
+                const targetPage = document.getElementById(pageId);
+                
+                if (pageId === 'thumbnail-page') {
+                    pages.forEach(page => page.classList.remove('active'));
+                    if (targetPage) targetPage.classList.add('active'); 
+                    
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    const searchNavBtn = document.querySelector('.nav-btn[data-page="search-page"]');
+                    if(searchNavBtn) searchNavBtn.classList.add('active');
+                    return; 
+                }
+                
+                pages.forEach(page => page.classList.remove('active'));
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                if (targetPage) targetPage.classList.add('active');
+
+                let buttonToActivate = pageId;
+                if (pageId === 'options-page') buttonToActivate = 'search-page';
+                const activeButton = document.querySelector(`.nav-btn[data-page="${buttonToActivate}"]`);
+                if (activeButton) activeButton.classList.add('active');
+            }
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const pageId = button.getAttribute('data-page');
+                    if (pageId === 'search-page') {
+                        if (currentSearchMode === 'thumbnail') {
+                            switchPage('search-page');
+                        }
+                        else if (currentVideoData && (currentVideoData.title || currentVideoData.type === 'playlist')) {
+                            switchPage('options-page');
+                        } else {
+                            switchPage('search-page');
+                        }
+                    }
+                    else {
+                        switchPage(pageId);
+                    }
+                });
+            });
+
+            concurrencyLimitInput.addEventListener('change', (e) => {
+                let limit = parseInt(e.target.value, 10);
+                if (limit < 1) {
+                    e.target.value = 1;
+                    limit = 1;
+                }
+                
+                fetch('/api/set-limit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ limit: limit })
+                }).then(res => {
+                    if(res.ok) alert('تم تحديث الحد الأقصى للتحميلات');
+                });
+            });
+
+            // ... (باقي دوال الجافاسكريبت setupWebSocket, updateBadgeCount, ...) كما هي ...
+            function setupWebSocket() {
+                // --- !!! تعديل مهم: الاتصال بالخادم الخارجي !!! ---
+                // const socket = new WebSocket(`ws://${window.location.host}`); // السطر القديم
+                const socketUrl = window.location.origin.replace(/^http/, 'ws');
+                socket = new WebSocket(socketUrl);
+                // --- !!! نهاية التعديل !!! ---
+
+                socket.onopen = () => {
+                    console.log('✅ تم الاتصال بالـ WebSocket');
+                    updateBadgeCount(); 
+                    const existingItems = document.querySelectorAll('.download-item[data-id]');
+                    if (existingItems.length > 0) {
+                        existingItems.forEach(item => {
+                            const id = item.dataset.id;
+                            const status = item.querySelector('.download-progress').dataset.status;
+                            if (id && status !== 'completed' && status !== 'error' && status !== 'cancelled') {
+                                socket.send(JSON.stringify({ type: 'register', id: id }));
+                            }
+                        });
+                    }
+                };
+                
+                socket.onclose = () => console.log('تم قطع اتصال WebSocket');
+                
+                socket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    const itemElement = document.querySelector(`.download-item[data-id="${data.id}"]`);
+                    if (!itemElement) return;
+                    
+                    const statusText = itemElement.querySelector('.status');
+                    const progressCircle = itemElement.querySelector('.download-progress');
+                    const icon = itemElement.querySelector('.icon');
+                    const progress = parseFloat(data.progress || 0);
+                    
+                    const previousStatus = progressCircle.dataset.status;
+
+                    if (data.status === 'queued') {
+                        statusText.textContent = `في الطابور...`;
+                        statusText.style.color = 'var(--primary-color)';
+                        icon.className = 'fas fa-clock icon';
+                        progressCircle.dataset.status = 'queued';
+                    } else if (data.status === 'downloading') {
+                        statusText.textContent = `جاري التحميل... ${progress.toFixed(1)}٪`;
+                        statusText.style.color = 'var(--text-color)';
+                        progressCircle.style.background = `conic-gradient(var(--primary-color) ${progress}%, #333 0)`;
+                        icon.className = 'fas fa-pause icon';
+                        progressCircle.dataset.status = 'loading';
+                    } else if (data.status === 'paused') {
+                        statusText.textContent = `متوقف ${progress.toFixed(1)}٪`;
+                        statusText.style.color = 'var(--primary-color)';
+                        icon.className = 'fas fa-play icon';
+                        progressCircle.dataset.status = 'paused';
+                    } else if (data.status === 'cancelled') {
+                        statusText.textContent = `تم الإلغاء`;
+                        statusText.style.color = 'var(--secondary-text-color)';
+                        icon.className = 'fas fa-ban icon';
+                        progressCircle.dataset.status = 'error'; 
+                        progressCircle.style.cursor = 'default';
+                    } else if (data.status === 'completed') {
+                        statusText.textContent = 'اكتمل التحميل';
+                        statusText.style.color = '#4CAF50';
+                        icon.className = 'fas fa-check icon';
+                        progressCircle.dataset.status = 'completed'; 
+                        progressCircle.style.background = '#333';
+                        progressCircle.style.cursor = 'default';
+                        const progressButton = itemElement.querySelector('.download-progress');
+                         if(progressButton) progressButton.replaceWith(progressButton.cloneNode(true));
+
+                        if (data.filePath) {
+                            itemElement.dataset.filePath = data.filePath;
+                            itemElement.classList.add('completed'); 
+                        }
+                    } else if (data.status === 'error') {
+                        statusText.textContent = 'حدث خطأ';
+                        statusText.style.color = '#F44336';
+                        icon.className = 'fas fa-exclamation-triangle icon';
+                        progressCircle.dataset.status = 'error'; 
+                    }
+                    
+                    updateBadgeCount(); 
+                };
+            }
+            
+            function updateBadgeCount() {
+                const activeItems = document.querySelectorAll(
+                    '.download-item .download-progress:not([data-status="completed"]):not([data-status="error"])'
+                );
+                activeDownloadCount = activeItems.length;
+
+                if (activeDownloadCount > 0) {
+                    downloadBadge.textContent = activeDownloadCount;
+                    downloadBadge.style.display = 'block';
+                } else {
+                    downloadBadge.textContent = '';
+                    downloadBadge.style.display = 'none';
+                }
+            }
+
+            function animateThumbnailToDownloads(sourceElement) {
+                if (!sourceElement) return;
+
+                const sourceRect = sourceElement.getBoundingClientRect();
+                const targetIcon = downloadsNavButton.querySelector('i');
+                const targetRect = targetIcon.getBoundingClientRect();
+
+                const flyingThumb = document.createElement('img');
+                flyingThumb.src = sourceElement.src;
+                flyingThumb.classList.add('flying-thumbnail');
+
+                flyingThumb.style.top = `${sourceRect.top}px`;
+                flyingThumb.style.left = `${sourceRect.left}px`;
+                flyingThumb.style.width = `${sourceRect.width}px`;
+                flyingThumb.style.height = `${sourceRect.height}px`;
+                flyingThumb.style.opacity = '0.8';
+
+                document.body.appendChild(flyingThumb);
+
+                requestAnimationFrame(() => {
+                    flyingThumb.style.top = `${targetRect.top + targetRect.height / 2}px`;
+                    flyingThumb.style.left = `${targetRect.left + targetRect.width / 2}px`;
+                    flyingThumb.style.width = '0px';
+                    flyingThumb.style.height = '0px';
+                    flyingThumb.style.opacity = '0';
+                });
+
+                flyingThumb.addEventListener('transitionend', () => {
+                    flyingThumb.remove();
+                });
+            }
+
+
+            downloadSearchInput.addEventListener('keyup', () => {
+                const query = downloadSearchInput.value.toLowerCase();
+                const items = downloadListContainer.querySelectorAll('.download-item');
+                items.forEach(item => {
+                    const title = item.querySelector('h4').textContent.toLowerCase();
+                    item.style.display = title.includes(query) ? 'flex' : 'none';
+                });
+            });
+
+
+            clearCompletedButton.addEventListener('click', () => {
+                if (!confirm('هل أنت متأكد أنك تريد مسح كل التحميلات المنتهية (المكتملة، الملغاة، أو التي بها خطأ)؟')) return;
+                
+                const finishedProgressItems = downloadListContainer.querySelectorAll(
+                    '.download-progress[data-status="completed"], .download-progress[data-status="error"]'
+                );
+                
+                finishedProgressItems.forEach(progressCircle => {
+                    const itemToRemove = progressCircle.closest('.download-item');
+                    if (itemToRemove) {
+                        itemToRemove.classList.add('fading-out');
+                        setTimeout(() => {
+                            itemToRemove.remove();
+                        }, 400); 
+                    }
+                });
+                
+                updateBadgeCount(); 
+            });
+
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const videoURL = searchInput.value.trim();
+                    if (videoURL) {
+                        if (currentSearchMode === 'video') {
+                            fetchVideoInfo(videoURL);
+                        } else {
+                            fetchThumbnail(videoURL);
+                        }
+                    }
+                }
+            });
+
+            async function fetchVideoInfo(url) {
+                const originalValue = searchInput.value;
+
+                mainSearchIcon.classList.remove('fa-search');
+                mainSearchIcon.classList.add('fa-running'); 
+                mainSearchIcon.classList.add('loading'); 
+                
+                searchInput.value = ''; 
+                searchInput.placeholder = 'جاري البحث والحصول على المعلومات...';
+                searchInput.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/get-info', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: url })
+                    });
+                    
+                    if (!response.ok) {
+                        let errorMsg = 'فشل جلب المعلومات';
+                        try {
+                            const errData = await response.json();
+                            errorMsg = errData.error || errorMsg;
+                        } catch(e) { }
+                        throw new Error(errorMsg);
+                    }
+                    
+                    const data = await response.json();
+                    currentVideoData = data; 
+                    currentVideoData.originalUrl = url; 
+
+                    if (data.type === 'playlist') {
+                        renderPlaylist(data);
+                    } else {
+                        populateOptionsPage(data);
+                    }
+                    switchPage('options-page');
+                    
+                } catch (error) {
+                    console.error('Error fetching video info:', error);
+                    alert(`حدث خطأ: ${error.message}`);
+                    switchPage('search-page'); 
+                } finally {
+                    mainSearchIcon.classList.add('fa-search'); 
+                    mainSearchIcon.classList.remove('fa-running');
+                    mainSearchIcon.classList.remove('loading');
+                    
+                    searchInput.value = originalValue; 
+                    searchInput.placeholder = (currentSearchMode === 'video') ? 'بحث للتحميل' : 'أدخل رابط يوتيوب لجلب الغلاف';
+                    searchInput.disabled = false;
+                }
+            }
+
+
+            searchInput.addEventListener('input', () => {
+            });
+
+            clearSearchButton.addEventListener('click', () => {
+                searchInput.value = '';
+                searchInput.focus();
+                currentVideoData = {}; 
+                if (currentSearchMode === 'video') {
+                    switchPage('search-page');
+                }
+            });
+            
+            // --- !!! هذه هي الدالة المعدلة لتقليل الخيارات !!! ---
+            function populateOptionsPage(data) {
+                if (!data.formats || !Array.isArray(data.formats)) {
+                    alert('هذا الفيديو لا يحتوي على صيغ تحميل صالحة.');
+                    switchPage('search-page');
+                    return;
+                }
+                document.getElementById('music-options-list').parentElement.style.display = 'block';
+                document.getElementById('video-options-list').parentElement.style.display = 'block';
+                document.getElementById('download-button').style.display = 'block';
+
+                document.getElementById('video-title').textContent = data.title;
+                document.getElementById('video-channel').textContent = data.channel;
+                optionsPreviewImage.src = data.thumbnail; 
+
+                const musicList = document.getElementById('music-options-list');
+                const videoList = document.getElementById('video-options-list');
+                musicList.innerHTML = '';
+                videoList.innerHTML = '';
+
+                // --- !!! تعديل: فلترة الصوت !!! ---
+                const audioFormats = data.formats.filter(f => f.isAudio && f.ext !== 'webm');
+                const audioCategories = { medium: null, low: null };
+                
+                audioFormats.forEach(format => {
+                    const bitrate = parseInt(format.size_string, 10); // سنستخدم الحجم كمؤشر تقريبي
+                    
+                    if (bitrate > 10) { // افتراض أن أكثر من 10MB هو جودة "متوسطة"
+                         if (!audioCategories.medium || format.ext === 'm4a') { // الأولوية لـ m4a
+                            audioCategories.medium = format;
+                         }
+                    } else { // أقل من 10MB هو "منخفض"
+                        if (!audioCategories.low || format.ext === 'm4a') { // الأولوية لـ m4a
+                             audioCategories.low = format;
+                        }
+                    }
+                });
+                
+                let musicIndex = 0;
+                ['medium', 'low'].forEach(category => {
+                     const selectedFormat = audioCategories[category];
+                     if (selectedFormat) {
+                         let titleOverride = "صوت";
+                         if (category === 'medium') titleOverride = "صوت (متوسط)";
+                         else if (category === 'low') titleOverride = "صوت (منخفض)";
+                         musicList.innerHTML += createOptionItem(selectedFormat, 'music', musicIndex++, titleOverride);
+                     }
+                });
+                // حالة احتياطية إذا لم تتطابق الفئات
+                if (musicList.innerHTML === '' && audioFormats.length > 0) {
+                     const bestAudio = audioFormats.find(f => f.ext === 'm4a') || audioFormats[0];
+                     if (bestAudio) musicList.innerHTML += createOptionItem(bestAudio, 'music', musicIndex++, "صوت");
+                }
+                // --- !!! نهاية تعديل الصوت !!! ---
+
+
+                // --- !!! فلترة الفيديو (كما في الرد السابق) !!! ---
+                const videoFormats = data.formats.filter(f => f.isVideo);
+                const videoQualityCategories = { high: null, medium: null, reasonable: null, low: null };
+
+                videoFormats.forEach(format => {
+                    const resolutionParts = format.resolution ? format.resolution.split('p') : [];
+                    const height = resolutionParts.length > 0 ? parseInt(resolutionParts[0], 10) : 0; 
+
+                    if (isNaN(height)) return; // تجاهل الصيغ بدون دقة واضحة
+
+                    if (height >= 1080) {
+                        if (!videoQualityCategories.high || (format.ext === 'mp4' && videoQualityCategories.high.ext !== 'mp4')) {
+                            videoQualityCategories.high = format;
+                        }
+                    } else if (height >= 720) {
+                        if (!videoQualityCategories.medium || (format.ext === 'mp4' && videoQualityCategories.medium.ext !== 'mp4')) {
+                             videoQualityCategories.medium = format;
+                        }
+                    } else if (height >= 360) {
+                        const currentReasonableHeight = videoQualityCategories.reasonable ? parseInt(videoQualityCategories.reasonable.resolution.split('p')[0], 10) : 0;
+                         if (!videoQualityCategories.reasonable || (format.ext === 'mp4' && videoQualityCategories.reasonable.ext !== 'mp4') || (height > currentReasonableHeight)) {
+                             videoQualityCategories.reasonable = format; 
+                        }
+                    } else if (height > 0) { // التأكد من وجود ارتفاع
+                        const currentLowHeight = videoQualityCategories.low ? parseInt(videoQualityCategories.low.resolution.split('p')[0], 10) : 0;
+                         if (!videoQualityCategories.low || (format.ext === 'mp4' && videoQualityCategories.low.ext !== 'mp4') || (height > currentLowHeight)) {
+                             videoQualityCategories.low = format; 
+                        }
+                    }
+                });
+
+                let videoIndex = 0;
+                ['high', 'medium', 'reasonable', 'low'].forEach(category => {
+                    const selectedFormat = videoQualityCategories[category];
+                    if (selectedFormat) {
+                        let titleOverride = selectedFormat.resolution;
+                        if (category === 'high') titleOverride = `عالية (${selectedFormat.resolution})`;
+                        else if (category === 'medium') titleOverride = `متوسطة (${selectedFormat.resolution})`;
+                        else if (category === 'reasonable') titleOverride = `معقولة (${selectedFormat.resolution})`;
+                        else if (category === 'low') titleOverride = `منخفضة (${selectedFormat.resolution})`;
+                        
+                        videoList.innerHTML += createOptionItem(selectedFormat, 'video', videoIndex++, titleOverride);
+                    }
+                });
+                // --- !!! نهاية فلترة الفيديو !!! ---
+                
+                // الاختيار التلقائي
+                const firstVideoRadio = videoList.querySelector('input[name="download-option"]');
+                const firstMusicRadio = musicList.querySelector('input[name="download-option"]');
+                if(firstVideoRadio) {
+                    firstVideoRadio.checked = true; 
+                } else if (firstMusicRadio) {
+                     firstMusicRadio.checked = true;
+                }
+            }
+
+            function createOptionItem(format, type, index = 0, titleOverride = null) {
+                const title = titleOverride ? `${titleOverride} (${format.ext})` : 
+                              (type === 'music' ? `صوت (${format.ext})` : `${format.resolution} (${format.ext})`);
+                const size = format.size_string || 'N/A'; 
+                const icon = type === 'music' ? 'fa-music' : 'fa-play';
+                return `
+                    <div class="option-item" style="animation-delay: ${index * 0.05}s">
+                        <label>
+                            <i class="fas ${icon} icon"></i>
+                            <div class="details">
+                                <span class="title">${title}</span>
+                                <span class="size">${size}</span>
+                            </div>
+                            <input type="radio" name="download-option" value="${format.format_id}">
+                        </label>
+                    </div>
+                `;
+            }
+
+
+             function renderPlaylist(data) {
+                document.getElementById('video-title').textContent = data.title || "قائمة تشغيل";
+                const videoCount = data.videoCount || (data.videos ? data.videos.length : 0);
+                let channelText = `قائمة تشغيل (${videoCount} فيديو)`;
+                if (data.uploader) channelText += ` - ${data.uploader}`;
+                document.getElementById('video-channel').textContent = channelText;
+                if(data.thumbnail) optionsPreviewImage.src = data.thumbnail; 
+
+                document.getElementById('music-options-list').parentElement.style.display = 'none';
+                document.getElementById('download-button').style.display = 'none';
+                document.getElementById('video-options-list').parentElement.style.display = 'block';
+
+                const videoList = document.getElementById('video-options-list');
+                videoList.innerHTML = '';
+
+                if (data.videos && data.videos.length > 0) {
+                    const downloadAllButton = document.createElement('div');
+                    downloadAllButton.id = 'download-all-playlist';
+                    downloadAllButton.className = 'option-item';
+                    downloadAllButton.style.cursor = 'pointer';
+                    downloadAllButton.style.backgroundColor = 'var(--input-bg-color)';
+                    downloadAllButton.style.animationDelay = '0s';
+                    downloadAllButton.style.opacity = '1';
+
+
+                    downloadAllButton.innerHTML = `
+                        <label style="cursor: pointer; justify-content: center; width: 100%;">
+                            <i class="fas fa-cloud-download-alt icon" style="color: var(--primary-color);"></i>
+                            <div class="details" style="margin-right: 10px;">
+                                <span class="title">تحميل الكل (${data.videos.length} فيديو)</span>
+                            </div>
+                        </label>
+                    `;
+
+                    downloadAllButton.addEventListener('click', () => {
+                        if (!confirm(`هل أنت متأكد أنك تريد إضافة ${data.videos.length} فيديو إلى طابور التحميل؟`)) return;
+
+                        downloadAllButton.innerHTML = '<p class="quick-download-feedback"><i class="fas fa-spinner fa-spin"></i> جاري إضافة الكل للطابور...</p>';
+                        downloadAllButton.style.pointerEvents = 'none';
+
+                        let count = 0;
+                        data.videos.forEach(entry => {
+                             const correspondingItem = videoList.querySelector(`.playlist-item[data-original-url="${entry.url}"]`);
+                             const sourceThumb = correspondingItem?.querySelector('.thumbnail');
+                            startQuickDownload(entry, null, sourceThumb);
+                            count++;
+                        });
+
+                         setTimeout(() => {
+                           downloadAllButton.innerHTML = `<p class="quick-download-feedback"><i class="fas fa-check"></i> تم إضافة ${count} فيديو للطابور!</p>`;
+                        }, 2000);
+                    });
+
+                    videoList.appendChild(downloadAllButton);
+                }
+
+                if (data.videos && Array.isArray(data.videos)) {
+                    data.videos.forEach((entry, index) => {
+                        const itemElement = createPlaylistItem(entry, index + 1); 
+                        if (itemElement) {
+                            if (index > 0) itemElement.classList.add('playlist-item-hidden');
+                            videoList.appendChild(itemElement);
+                        }
+                    });
+
+                    if (data.videos.length > 1) {
+                        const showMoreButton = document.createElement('div');
+                        showMoreButton.id = 'show-more-playlist';
+                        showMoreButton.className = 'option-item';
+                        showMoreButton.style.animationDelay = `${(data.videos.length > 1 ? 2 : 1) * 0.05}s`;
+                        showMoreButton.style.opacity = '1';
+
+                        showMoreButton.innerHTML = `
+                            <label style="cursor: pointer; justify-content: center;">
+                                <i class="fas fa-ellipsis-h icon"></i>
+                                <div class="details" style="margin-right: 10px;">
+                                    <span class="title">إظهار الكل (${data.videos.length - 1} فيديو إضافي)</span>
+                                </div>
+                            </label>
+                        `;
+
+                        showMoreButton.addEventListener('click', () => {
+                            let delayIndex = 0;
+                            document.querySelectorAll('.playlist-item-hidden').forEach(el => {
+                                el.classList.remove('playlist-item-hidden');
+                                el.style.animation = `slideInFade 0.5s ease-out forwards`;
+                                el.style.animationDelay = `${delayIndex * 0.05}s`;
+                                delayIndex++;
+                            });
+                            showMoreButton.remove();
+                        });
+
+                        videoList.appendChild(showMoreButton);
+                    }
+                } else {
+                    videoList.innerHTML = "<p>القائمة فارغة أو حدث خطأ.</p>";
+                }
+            }
+
+            function createPlaylistItem(entry, index = 0) {
+                const title = entry.title || "فيديو بدون عنوان";
+                const url = entry.url;
+                if (!url) return null;
+                const thumbnailUrl = entry.thumbnail || 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
+
+                const itemElement = document.createElement('div');
+                itemElement.className = 'option-item playlist-item';
+                itemElement.dataset.originalUrl = url; 
+                
+                itemElement.style.animationDelay = `${index * 0.05}s`;
+
+
+                itemElement.innerHTML = `
+                    <label style="pointer-events: none; width: 100%; display: flex; align-items: center;">
+                        <img src="${thumbnailUrl}" alt="thumbnail" class="thumbnail">
+                        <div class="details" style="margin-left: 10px; flex-grow: 1;">
+                            <span class="title">${title}</span>
+                            <span class="size">${entry.duration_string || '...'}</span>
+                        </div>
+                        <i class="fas fa-download icon" style="margin-left: auto; margin-right: 10px;"></i>
+                    </label>
+                `;
+
+                itemElement.addEventListener('click', () => {
+                    const thumb = itemElement.querySelector('.thumbnail'); 
+                    startQuickDownload(entry, itemElement, thumb); 
+                });
+
+                return itemElement;
+            }
+
+            async function startQuickDownload(entry, itemElement = null, sourceThumbnail = null) {
+                 const originalHtml = itemElement ? itemElement.innerHTML : null;
+
+                if (itemElement) {
+                    itemElement.innerHTML = '<p class="quick-download-feedback"><i class="fas fa-spinner fa-spin"></i> جاري جلب أفضل جودة...</p>';
+                    itemElement.style.pointerEvents = 'none';
+                }
+
+                try {
+                     const response = await fetch('/api/get-info', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: entry.url })
+                    });
+                    if (!response.ok) throw new Error('فشل جلب المعلومات');
+
+                    const videoData = await response.json();
+
+                    if (!videoData.formats || !Array.isArray(videoData.formats)) {
+                        throw new Error('لا توجد صيغ صالحة');
+                    }
+                    
+                    const bestFormat = videoData.formats.find(f => f.isVideo && f.resolution && f.resolution.includes('720')) 
+                                    || videoData.formats.find(f => f.isVideo && f.resolution && f.resolution.includes('480'))
+                                    || videoData.formats.find(f => f.isVideo && f.resolution && f.resolution.includes('360'))
+                                    || videoData.formats.find(f => f.isVideo); 
+                                    
+                    if (!bestFormat) throw new Error('لم يتم العثور على جودة فيديو صالحة للتحميل السريع');
+
+
+                     const startResponse = await fetch('/api/start-download', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: videoData.originalUrl || entry.url,
+                            format_id: bestFormat.format_id,
+                            title: videoData.title,
+                            channel: videoData.channel,
+                            thumbnail: videoData.thumbnail
+                        })
+                    });
+                    if (!startResponse.ok) throw new Error('فشل بدء التحميل');
+
+                    const startData = await startResponse.json();
+
+                    createDownloadItem(
+                        startData.downloadId,
+                        videoData.title,
+                        videoData.channel,
+                        videoData.thumbnail
+                    );
+                    updateBadgeCount();
+
+                    const thumbToAnimate = sourceThumbnail || document.querySelector(`.playlist-item[data-original-url="${entry.url}"] .thumbnail`);
+                    animateThumbnailToDownloads(thumbToAnimate);
+
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({ type: 'register', id: startData.downloadId }));
+                    }
+
+                    if (itemElement) {
+                        itemElement.innerHTML = '<p class="quick-download-feedback"><i class="fas fa-check"></i> تمت الإضافة للطابور!</p>';
+                        setTimeout(() => {
+                            if(itemElement) { 
+                               itemElement.innerHTML = originalHtml;
+                               itemElement.style.pointerEvents = 'auto';
+                            }
+                        }, 2000);
+                    }
+                } catch (error) {
+                    console.error('Quick download failed:', error);
+                    if (itemElement) {
+                        alert(`فشل التحميل السريع: ${error.message}`);
+                        itemElement.innerHTML = originalHtml; 
+                        itemElement.style.pointerEvents = 'auto';
+                    } else {
+                        console.error(`Failed to quick download ${entry.title}: ${error.message}`);
+                    }
+                }
+            }
+
+            function createDownloadItem(id, title, channel, thumbnail) {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'download-item';
+                itemElement.setAttribute('data-id', id);
+                itemElement.innerHTML = `
+                    <img src="${thumbnail}" alt="thumbnail" class="thumbnail">
+                    <div class="download-info">
+                        <h4>${title}</h4>
+                        <p>${channel}</p>
+                        <div class="status" id="status-${id}">في الطابور...</div>
+                    </div>
+                    <div class="download-progress" id="progress-${id}" data-status="queued" data-progress="0">
+                        <i class="fas fa-clock icon"></i>
+                    </div>
+                `;
+
+                const progressButton = itemElement.querySelector('.download-progress');
+                progressButton.addEventListener('click', () => {
+                    const currentStatus = progressButton.dataset.status;
+                    if (currentStatus === 'loading') {
+                        fetch(`/api/pause/${id}`, { method: 'POST' });
+                    } else if (currentStatus === 'paused') {
+                        fetch(`/api/resume/${id}`, { method: 'POST' });
+                    }
+                });
+
+                itemElement.addEventListener('click', (e) => {
+                    if (e.target.closest('.download-progress')) return;
+                    const status = progressButton?.dataset.status;
+                    const filePath = itemElement.dataset.filePath;
+                    if (status === 'completed' && filePath) {
+                        // --- !!! تعديل: استخدام الرابط الكامل للخادم !!! ---
+                        window.open(new URL(filePath, window.location.origin).href, '_blank');
+                    }
+                });
+
+                downloadListContainer.prepend(itemElement);
+            }
+
+            downloadButton.addEventListener('click', async () => {
+                 const selectedRadio = document.querySelector('input[name="download-option"]:checked');
+                if (!selectedRadio) return alert('الرجاء اختيار جودة');
+                
+                downloadButton.classList.add('loading');
+                downloadButton.disabled = true;
+
+                const selectedFormatId = selectedRadio.value;
+                const videoURL = currentVideoData.originalUrl;
+                const sourceThumbnail = optionsPreviewImage;
+                try {
+                    const response = await fetch('/api/start-download', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: videoURL,
+                            format_id: selectedFormatId,
+                            title: currentVideoData.title,
+                            channel: currentVideoData.channel,
+                            thumbnail: currentVideoData.thumbnail
+                        })
+                    });
+                    if (!response.ok) throw new Error('فشل بدء التحميل');
+                    const data = await response.json();
+                    createDownloadItem(
+                        data.downloadId,
+                        currentVideoData.title,
+                        currentVideoData.channel,
+                        currentVideoData.thumbnail
+                    );
+                    updateBadgeCount();
+                    animateThumbnailToDownloads(sourceThumbnail);
+                    switchPage('downloads-page');
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({ type: 'register', id: data.downloadId }));
+                    }
+                } catch (error) {
+                    console.error('Error starting download:', error);
+                    alert('حدث خطأ أثناء بدء التحميل.');
+                } finally {
+                    downloadButton.classList.remove('loading');
+                    downloadButton.disabled = false;
+                }
+            });
+            
+            // --- !!! كل المنطق الخاص بتحميل الغلاف !!! ---
+            searchModeTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    searchModeTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    currentSearchMode = tab.dataset.mode;
+                    
+                    if (currentSearchMode === 'video') {
+                        searchInput.placeholder = 'بحث للتحميل';
+                        supportedPlatforms.style.opacity = '1';
+                        supportedPlatforms.style.transform = 'scale(1)';
+                        moreSitesNote.style.opacity = '1';
+                    } else {
+                        searchInput.placeholder = 'أدخل رابط يوتيوب لجلب الغلاف';
+                        supportedPlatforms.style.opacity = '0';
+                        supportedPlatforms.style.transform = 'scale(0.9)';
+                        moreSitesNote.style.opacity = '0';
+                    }
+                });
+            });
+
+            function extractYouTubeId(url) {
+                const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})(?:\S+)?/;
+                const match = url.match(regex);
+                if (match && match[1]) { return match[1]; }
+                if (url.length === 11 && !url.includes('.') && !url.includes('/')) { return url; }
+                return null;
+            }
+
+            async function fetchThumbnail(url) {
+                const originalValue = searchInput.value;
+                mainSearchIcon.classList.remove('fa-search');
+                mainSearchIcon.classList.add('fa-running');
+                mainSearchIcon.classList.add('loading');
+                searchInput.value = '';
+                searchInput.placeholder = 'جاري جلب الغلاف...';
+                searchInput.disabled = true;
+
+                const videoId = extractYouTubeId(url);
+                if (!videoId) {
+                    alert('رابط يوتيوب غير صالح.');
+                    resetSearchUI(originalValue);
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/get-thumbnail/${videoId}`);
+                    if (!response.ok) { throw new Error('Server could not find thumbnail'); }
+                    const data = await response.json();
+                    if (data.success && data.url) {
+                        thumbnailPreviewImg.src = data.url;
+                        const downloadUrl = `/api/download-thumbnail?url=${encodeURIComponent(data.url)}&id=${videoId}`;
+                        downloadThumbnailBtn.href = downloadUrl;
+                        switchPage('thumbnail-page');
+                    } else { throw new Error('Server responded with an error'); }
+                } catch (error) {
+                    console.error('Fetch thumbnail error:', error);
+                    alert('تعذر تحميل الغلاف.');
+                } finally {
+                    resetSearchUI(originalValue);
+                }
+            }
+            
+            function resetSearchUI(originalValue) {
+                mainSearchIcon.classList.add('fa-search'); 
+                mainSearchIcon.classList.remove('fa-running');
+                mainSearchIcon.classList.remove('loading');
+                searchInput.value = originalValue; 
+                searchInput.placeholder = 'أدخل رابط يوتيوب لجلب الغلاف';
+                searchInput.disabled = false;
+            }
+
+            thumbnailBackBtn.addEventListener('click', () => {
+                switchPage('search-page');
+                thumbnailPreviewImg.src = ''; 
+                currentThumbnailUrl = '';
+                downloadThumbnailBtn.href = "#";
+                downloadThumbnailBtn.removeAttribute('download');
+            });
+
+            // --- !!! إضافة: منطق تبديل الوضع !!! ---
+            function applyTheme(theme) {
+                if (theme === 'light') {
+                    bodyElement.classList.add('light-mode');
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                } else {
+                    bodyElement.classList.remove('light-mode');
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                }
+            }
+
+            themeToggleButton.addEventListener('click', () => {
+                const isLightMode = bodyElement.classList.contains('light-mode');
+                const newTheme = isLightMode ? 'dark' : 'light';
+                applyTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+
+            const savedTheme = localStorage.getItem('theme') || 'dark'; 
+            applyTheme(savedTheme);
+            // --- !!! نهاية الإضافة !!! ---
+
+
+            setupWebSocket();
+            updateBadgeCount(); 
+
+        });
+    </script>
+</body>
+</html>
