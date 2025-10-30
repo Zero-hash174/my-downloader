@@ -1,0 +1,15 @@
+{
+  "name": "my-downloader",
+  "version": "1.0.0",
+  "description": "My video downloader",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "uuid": "^9.0.1",
+    "ws": "^8.17.0"
+  }
+}
